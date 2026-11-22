@@ -28,6 +28,8 @@ BASE_DIR = Path(__file__).parent
 EXAMPLES_DIR = BASE_DIR / "examples"
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
+MAX_FILE_SIZE = MAX_TEXT_LENGTH * 2
+
 DEFAULT_FORM = {
     "text": (EXAMPLES_DIR / "tale.txt").read_text(encoding="utf-8"),
     "characters": (EXAMPLES_DIR / "characters.txt").read_text(
@@ -48,8 +50,10 @@ app = FastAPI(
 
 def read_upload(file: UploadFile) -> str:
     """Читает TXT-файл в кодировке UTF-8 или Windows-1251."""
-    
-    content = file.file.read()
+
+    content = file.file.read(MAX_FILE_SIZE + 1)
+    if len(content) > MAX_FILE_SIZE:
+        raise ValueError("Файл слишком большой")
     try:
         return content.decode("utf-8")
     except UnicodeDecodeError:
@@ -93,8 +97,6 @@ def build_graph_page(
 ) -> HTMLResponse:
     """Обрабатывает форму и показывает граф с таблицами."""
 
-    if file is not None and file.filename:
-        text = read_upload(file)
     form = {
         "text": text,
         "characters": characters,
@@ -104,30 +106,32 @@ def build_graph_page(
         "top": top,
     }
 
-    parsed = parse_characters(characters)
-    error = None
-    if not text.strip():
-        error = "Введите текст или загрузите TXT-файл"
-    elif len(text) > MAX_TEXT_LENGTH:
-        error = "Текст слишком длинный"
-    elif not parsed:
-        error = "Укажите хотя бы одного персонажа"
-    if error:
+    try:
+        if file is not None and file.filename:
+            text = read_upload(file)
+            form["text"] = text
+        parsed = parse_characters(characters)
+        if not text.strip():
+            raise ValueError("Введите текст или загрузите TXT-файл")
+        if len(text) > MAX_TEXT_LENGTH:
+            raise ValueError("Текст слишком длинный")
+        if not parsed:
+            raise ValueError("Укажите хотя бы одного персонажа")
+    except ValueError as error:
         logger.warning("Некорректный ввод: %s", error)
         return templates.TemplateResponse(
             request,
             "index.html",
-            {"form": form, "error": error},
+            {"form": form, "error": str(error)},
             status_code=400,
         )
 
     result = analyze(text, parsed, window, min_mentions, min_links, top)
-    image = base64.b64encode(draw_graph(result)).decode("ascii")
-    return templates.TemplateResponse(
-        request,
-        "index.html",
-        {"form": form, "result": result, "image": image},
-    )
+    context = {"form": form, "result": result}
+    if result.mentions:
+        image = draw_graph(result)
+        context["image"] = base64.b64encode(image).decode("ascii")
+    return templates.TemplateResponse(request, "index.html", context)
 
 
 @app.get("/health")

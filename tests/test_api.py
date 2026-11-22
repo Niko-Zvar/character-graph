@@ -35,6 +35,7 @@ def test_api_rejects_invalid_input() -> None:
         {**REQUEST, "window": "chapter"},
         {**REQUEST, "min_mentions": 0},
         {**REQUEST, "characters": {}},
+        {**REQUEST, "characters": {"  ": []}},
         {"characters": {}},
     ]
     for request in bad_requests:
@@ -91,3 +92,36 @@ def test_page_shows_error_for_too_long_text(
 
     assert response.status_code == 400
     assert "Текст слишком длинный" in response.text
+
+
+def test_page_shows_error_for_duplicate_character() -> None:
+    form = {**REQUEST_FORM, "characters": "Иван\nИван, Ванюша"}
+
+    response = client.post("/", data=form)
+
+    assert response.status_code == 400
+    assert "Персонаж «Иван» указан дважды" in response.text
+
+
+def test_page_shows_error_for_too_big_file(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(main, "MAX_FILE_SIZE", 10)
+    file = ("tale.txt", REQUEST["text"].encode("utf-8"), "text/plain")
+
+    response = client.post(
+        "/", data={"characters": "Иван"}, files={"file": file}
+    )
+
+    assert response.status_code == 400
+    assert "Файл слишком большой" in response.text
+
+
+def test_page_without_found_characters_has_no_graph() -> None:
+    form = {**REQUEST_FORM, "characters": "Баба Яга"}
+
+    response = client.post("/", data=form)
+
+    assert response.status_code == 200
+    assert "Персонажи в тексте не найдены" in response.text
+    assert "data:image/png" not in response.text

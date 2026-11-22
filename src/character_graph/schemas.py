@@ -24,9 +24,20 @@ class AnalyzeRequest(BaseModel):
     @classmethod
     def text_not_blank(cls, value: str) -> str:
         """Запрещает текст из одних пробелов."""
-        
+
         if not value.strip():
             raise ValueError("текст не может быть пустым")
+        return value
+
+    @field_validator("characters")
+    @classmethod
+    def names_not_blank(
+        cls, value: dict[str, list[str]]
+    ) -> dict[str, list[str]]:
+        """Запрещает пустые имена персонажей."""
+
+        if any(not name.strip() for name in value):
+            raise ValueError("имя персонажа не может быть пустым")
         return value
 
 

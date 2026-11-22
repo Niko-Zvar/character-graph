@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import pytest
+
 from character_graph.analyzer import analyze, parse_characters
 from character_graph.text_processing import lemmatize, split_text
 
@@ -32,6 +34,11 @@ def test_parse_characters_with_aliases() -> None:
         "Иван": ["Иван-царевич", "Ванюша"],
         "Кощей": [],
     }
+
+
+def test_parse_characters_rejects_duplicates() -> None:
+    with pytest.raises(ValueError, match="указан дважды"):
+        parse_characters("Иван\nКощей\nИван, Ванюша")
 
 
 def test_main_scenario_on_tale() -> None:

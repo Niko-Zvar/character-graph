@@ -26,6 +26,8 @@ def parse_characters(text: str) -> dict[str, list[str]]:
     for line in text.splitlines():
         names = [name.strip() for name in line.split(",") if name.strip()]
         if names:
+            if names[0] in characters:
+                raise ValueError(f"Персонаж «{names[0]}» указан дважды")
             characters[names[0]] = names[1:]
     return characters
 
@@ -39,7 +41,7 @@ def analyze(
     top: int | None = None,
 ) -> Graph:
     """Считает упоминания персонажей и их совместные появления."""
-    
+
     variants = {
         name: [lemmatize(alias) for alias in [name, *aliases]]
         for name, aliases in characters.items()

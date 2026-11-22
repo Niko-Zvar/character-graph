@@ -10,7 +10,7 @@ from character_graph.analyzer import Graph
 
 def draw_graph(result: Graph) -> bytes:
     """Рисует граф: размер вершины — число упоминаний, толщина ребра — вес."""
-    
+
     graph = nx.Graph()
     graph.add_nodes_from(result.mentions)
     for (source, target), weight in result.links.items():

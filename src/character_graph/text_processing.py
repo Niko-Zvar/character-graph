@@ -28,5 +28,5 @@ def lemma(word: str) -> str:
 
 def lemmatize(text: str) -> str:
     """Возвращает леммы всех слов текста одной строкой через пробел."""
-    
+
     return " ".join(lemma(word) for word in WORD.findall(text))

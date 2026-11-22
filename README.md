@@ -34,7 +34,7 @@ pyproject.toml, uv.lock
 Нужны Git и [uv](https://docs.astral.sh/uv/getting-started/installation/).
 
 ```powershell
-git clone https://github.com/<логин>/character-graph.git
+git clone https://github.com/Niko-Zvar/character-graph.git
 cd character-graph
 uv sync
 ```
@@ -75,7 +75,6 @@ docker run -p 8000:8000 character-graph
 uv run pytest
 uv run ruff check .
 uv run ruff format --check .
-uv run flake8 src tests
 ```
 
 Тесты покрывают основной сценарий, граничные случаи и некорректный ввод. В GitHub Actions они запускаются автоматически.
