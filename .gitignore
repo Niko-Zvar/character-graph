@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Виртуальное окружение
+.venv/
+
+# Кэши инструментов
+.pytest_cache/
+.ruff_cache/
+
+# Логи и локальные настройки
+*.log
+.env
+
+# Редакторы и ОС
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
