@@ -44,7 +44,7 @@ DEFAULT_FORM = {
 app = FastAPI(
     title="Character Graph",
     description="Граф персонажей: кто с кем появляется в одном фрагменте.",
-    version="0.2.0",
+    version="0.3.0",
 )
 
 
